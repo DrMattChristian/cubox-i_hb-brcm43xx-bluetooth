@@ -17,7 +17,7 @@
  ******************************************************************************/
 
 /*****************************************************************************
-**                                                                           
+**
 **  Name:          brcm_patchram_plus.c
 **
 **  Description:   This program downloads a patchram files in the HCD format
@@ -91,15 +91,15 @@
 **                 It will return 0 for success and a number greater than 0
 **                 for any errors.
 **
-**                 For Android, this program invoked using a 
+**                 For Android, this program invoked using a
 **                 "system(2)" call from the beginning of the bt_enable
-**                 function inside the file 
+**                 function inside the file
 **                 system/bluetooth/bluedroid/bluetooth.c.
 **
 **                 If the Android system property "ro.bt.bcm_bdaddr_path" is
 **                 set, then the bd_addr will be read from this path.
 **                 This is overridden by --bd_addr on the command line.
-**  
+**
 ******************************************************************************/
 
 #include <stdio.h>
@@ -118,6 +118,7 @@
 #include <sys/termios.h>
 #include <sys/ioctl.h>
 #include <limits.h>
+#include <unistd.h>
 #endif
 
 #include <string.h>
@@ -455,7 +456,6 @@ parse_cmd_line(int argc, char **argv)
 		parse_scopcm, parse_i2s, parse_no2bytes, parse_tosleep};
 
 	while (1) {
-		int this_option_optind = optind ? optind : 1;
 		int option_index = 0;
 
 		static struct option long_options[] = {
@@ -515,7 +515,7 @@ parse_cmd_line(int argc, char **argv)
 
 	if (optind < argc) {
 		if (debug)
-			printf ("%s \n", argv[optind]);
+			printf("%s \n", argv[optind]);
 		if ((uart_fd = open(argv[optind], O_RDWR | O_NOCTTY)) == -1) {
 			fprintf(stderr, "port %s could not be opened, error %d\n",
 					argv[optind], errno);

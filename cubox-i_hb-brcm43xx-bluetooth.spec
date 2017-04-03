@@ -1,18 +1,26 @@
 %define debug_package %{nil}
 
-Name:		cubox-i_hb-brcm43xx-bluetooth
-Version:	1.0
-Release:	3%{?dist}
-Summary:	Cubox-i brcm43xx Bluetooth firmware loader
-Group:		Applications/System
-License:	ASL 2.0
-Source0:	%{name}-%{version}.tar.gz
+Name:           cubox-i_hb-brcm43xx-bluetooth
+Version:        1.1
+Release:        3%{?dist}
+Summary:        Cubox-i brcm43xx Bluetooth firmware loader
+Group:          Applications/System
+License:        ASL 2.0
+ExclusiveArch:  %{arm}
+Source1:        brcm_patchram_plus
+Source2:        brcm43xx-firmware-update
+Source3:        bcm4329.hcd
+Source4:        bcm4330.hcd
+Source5:        brcm43xx.service
+Source6:        brcm43xx-firmware.service
+Source7:        bcm43xx
 
-Obsoletes:	brcm_patchram_plus
+
+Obsoletes:      brcm_patchram_plus
 Obsoletes:      cubox-i-brcm4329-bluetooth
 Obsoletes:      cubox-i_hb-brcm4329-bluetooth
-Requires:		linux-firmware
-Requires:		bluez
+Requires:       linux-firmware
+Requires:       bluez
 Requires(post):         systemd
 Requires(preun):        systemd
 Requires(postun):       systemd
@@ -21,7 +29,6 @@ Requires(postun):       systemd
 brcm43xx Bluetooth firmware loader
 
 %prep
-%setup -q
 
 %build
 CFLAGS="$RPM_OPT_FLAGS"
@@ -32,27 +39,29 @@ gcc $CFLAGS $LDFLAGS -o brcm_patchram_plus brcm_patchram_plus.c
 rm -rf $RPM_BUILD_ROOT
 
 mkdir -p $RPM_BUILD_ROOT%{_sbindir}
-install -m0755 brcm_patchram_plus $RPM_BUILD_ROOT%{_sbindir}
-install -m0755 brcm43xx-firmware-update $RPM_BUILD_ROOT%{_sbindir}
+install -m0755 %{SOURCE1} $RPM_BUILD_ROOT%{_sbindir}
+install -m0755 %{SOURCE2} $RPM_BUILD_ROOT%{_sbindir}
 mkdir -p $RPM_BUILD_ROOT/lib/firmware/brcm
-install -m0644 bcm4329.hcd $RPM_BUILD_ROOT/lib/firmware/brcm
-install -m0644 bcm4330.hcd $RPM_BUILD_ROOT/lib/firmware/brcm
+install -m0644 %{SOURCE3} $RPM_BUILD_ROOT/lib/firmware/brcm
+install -m0644 %{SOURCE4} $RPM_BUILD_ROOT/lib/firmware/brcm
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
-install -m0644 brcm43xx.service $RPM_BUILD_ROOT%{_unitdir}
-install -m0644 brcm43xx-firmware.service $RPM_BUILD_ROOT%{_unitdir}
+install -m0644 %{SOURCE5} $RPM_BUILD_ROOT%{_unitdir}
+install -m0644 %{SOURCE6} $RPM_BUILD_ROOT%{_unitdir}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
-install -m0644 bcm43xx  $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
+install -m0644 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
-/bin/systemctl enable brcm4329-bluetooth.service >/dev/null 2>&1 || :
+# Install/enable the new services but do not start them
+/bin/systemctl enable brcm43xx-firmware.service >/dev/null 2>&1 || :
+/bin/systemctl enable brcm43xx.service >/dev/null 2>&1 || :
 
 %preun
 if [ $1 -eq 0 ] ; then
     # Package removal, not upgrade
-    /bin/systemctl --no-reload disable brcm4329-bluetooth.service > /dev/null 2>&1 || :
-    /bin/systemctl stop brcm4329-bluetooth.service > /dev/null 2>&1 || :
+    /bin/systemctl --no-reload disable --now brcm43xx-firmware.service > /dev/null 2>&1 || :
+    /bin/systemctl --no-reload disable --now brcm43xx.service > /dev/null 2>&1 || :
 fi
 
 %postun
@@ -60,6 +69,7 @@ fi
 
 %files
 %defattr(-,root,root,-)
+# XXX - These shouldn't be wildcards, use specific files instead
 %attr(0755,root,root) %{_sbindir}/*
 %attr(0644,root,root) /lib/firmware/brcm/*
 %attr(0644,root,root) %{_unitdir}/*.service

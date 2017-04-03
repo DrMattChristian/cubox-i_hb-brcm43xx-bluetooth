@@ -1,0 +1,4 @@
+.build-*.log
+armv7hl/
+brcm_patchram_plus
+cubox-i_hb-brcm43xx-bluetooth-*.src.rpm

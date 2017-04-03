@@ -1,0 +1,2 @@
+#!/bin/bash
+fedpkg --release f25 local
