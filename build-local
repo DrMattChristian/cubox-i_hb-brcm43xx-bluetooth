@@ -1,2 +1,2 @@
 #!/bin/bash
-fedpkg --release f27 local
+fedpkg --release f28 local
